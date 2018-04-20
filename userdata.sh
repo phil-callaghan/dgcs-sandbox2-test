@@ -131,12 +131,22 @@ HTTPD_CONF
 
     ProxyRequests off
 
-    ProxyPass "/" "http://localhost:8080/"
-    ProxyPassReverse "/" "http://localhost:8080/"
+    ProxyPass "/" "http://localhost:8080/tenant/"
+    ProxyPassReverse "/" "http://localhost:8080/tenant/"
 </VirtualHost>
 TENANT_PROXY_CONF
 
+    # Ensure the logs directory exists
     mkdir -p /etc/httpd/logs/${proxy_hostname}
+
+    # Ensure httpd can use the network
+    setsebool -P httpd_can_network_connect 1
+    setsebool -P httpd_can_network_relay 1
+}
+
+function httpd_service {
+    systemctl enable httpd
+    systemctl start httpd
 }
 
 function tomcat_install {
@@ -209,9 +219,10 @@ maven_configure
 
 httpd_install
 httpd_configure
+httpd_service
 
 tenant_install
 tenant_configure
 tenant_service
 
-#cleanup
+cleanup
